@@ -11,7 +11,7 @@ import com.rj.Enotes_API_Service.entity.Category;
 public interface CategoryRepository extends JpaRepository<Category , Integer> {
 
     List<Category> findByIsActiveTrueAndIsDeletedFalse();
-    Optional<Category>findByIdAndIsdeletedFalse(Integer id);
+    Optional<Category>findByIdAndIsDeletedFalse(Integer id);
     List<Category> findByIsDeletedFalse();
 
 
