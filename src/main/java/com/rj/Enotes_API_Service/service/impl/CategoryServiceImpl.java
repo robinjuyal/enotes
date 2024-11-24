@@ -13,6 +13,7 @@ import org.springframework.util.ObjectUtils;
 import com.rj.Enotes_API_Service.dto.CategoryDto;
 import com.rj.Enotes_API_Service.dto.CategoryResponse;
 import com.rj.Enotes_API_Service.entity.Category;
+import com.rj.Enotes_API_Service.exception.ResourceNotFoundException;
 import com.rj.Enotes_API_Service.repository.CategoryRepository;
 import com.rj.Enotes_API_Service.service.CategoryService;
 
@@ -31,12 +32,11 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = mapper.map(categoryDto, Category.class);
 
         if (ObjectUtils.isEmpty(category.getId())) {
-            
-        category.setIsDeleted(false);
-        category.setCreatedBy(1);
-        category.setCreatedOn(new Date());
-        }
-        else{
+
+            category.setIsDeleted(false);
+            category.setCreatedBy(1);
+            category.setCreatedOn(new Date());
+        } else {
             updateCategory(category);
         }
 
@@ -48,9 +48,9 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     private void updateCategory(Category category) {
-        Optional<Category> findById=categoryRepo.findById(category.getId());
+        Optional<Category> findById = categoryRepo.findById(category.getId());
         if (findById.isPresent()) {
-            Category existCategory=findById.get();
+            Category existCategory = findById.get();
             category.setCreatedBy(existCategory.getCreatedBy());
             category.setCreatedOn(existCategory.getCreatedOn());
             category.setIsDeleted(existCategory.getIsDeleted());
@@ -80,10 +80,10 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryDto getCategoryById(Integer id) {
-        Optional<Category> findByCategory = categoryRepo.findByIdAndIsDeletedFalse(id);
-        if (findByCategory.isPresent()) {
-            Category category = findByCategory.get();
+    public CategoryDto getCategoryById(Integer id) throws Exception {
+        Category category = categoryRepo.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with the id " + id));
+        if (ObjectUtils.isEmpty(category)) {
             return mapper.map(category, CategoryDto.class);
         }
         return null;
@@ -91,11 +91,11 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Boolean deleteCategoryById(Integer id) {
-        
-        Optional<Category>findByCategory=categoryRepo.findById(id);
+
+        Optional<Category> findByCategory = categoryRepo.findById(id);
 
         if (findByCategory.isPresent()) {
-            Category category =findByCategory.get();
+            Category category = findByCategory.get();
             category.setIsDeleted(true);
             categoryRepo.save(category);
 
