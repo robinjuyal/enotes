@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.rj.Enotes_API_Service.dto.CategoryDto;
 import com.rj.Enotes_API_Service.dto.CategoryResponse;
 import com.rj.Enotes_API_Service.entity.Category;
+import com.rj.Enotes_API_Service.exception.ResourceNotFoundException;
 import com.rj.Enotes_API_Service.service.CategoryService;
 
 @RestController
@@ -41,6 +42,8 @@ public class CategoryController {
     
     @GetMapping("/")
     public ResponseEntity<?>getAllCategory(){
+        String nm=null;
+        nm.toUpperCase();
         List<CategoryDto>allCategories=categoryService.getAllCategory();
         if(CollectionUtils.isEmpty(allCategories)){
             return ResponseEntity.noContent().build();
@@ -61,11 +64,17 @@ public class CategoryController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?>getCategoryDetailsById(@PathVariable Integer id){
-        CategoryDto categoryDto=categoryService.getCategoryById(id);
-        if (ObjectUtils.isEmpty(categoryDto)) {
-            return new ResponseEntity<>("Category not found with id"+id,HttpStatus.NOT_FOUND);
+        CategoryDto categoryDto;
+    
+            categoryDto = categoryService.getCategoryById(id); 
+            if (ObjectUtils.isEmpty(categoryDto)) {
+                return new ResponseEntity<>("Internal server error ",HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>(categoryDto,HttpStatus.OK);
         }
-        return new ResponseEntity<>(categoryDto,HttpStatus.OK);
+    
+
+       
 
     }
     
