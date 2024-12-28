@@ -40,10 +40,9 @@ public class NotesDto {
     @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-
     public static class FileDto {
-
-  
+        
+        private Integer id;
         private String originalFileName;
         private String displayFileName;
        
