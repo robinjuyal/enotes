@@ -1,7 +1,9 @@
 package com.rj.Enotes_API_Service.service.impl;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,7 +59,7 @@ public class NotesServiceImpl implements NotesService {
         Notes notesMap = mapper.map(notesDto, Notes.class);
 
         FileDetails fileDetails = saveFileDetails(file);
-        if (ObjectUtils.isEmpty(fileDetails)) {
+        if (!ObjectUtils.isEmpty(fileDetails)) {
             notesMap.setFileDetails(fileDetails);
         } else {
             notesMap.setFileDetails(null);
@@ -87,7 +90,6 @@ public class NotesServiceImpl implements NotesService {
             // path :enotesapiservice/notes/java.pdf
 
             String storePath = uploadPath.concat(uploadFileName);
-           
 
             /// upload file
             long upload = Files.copy(file.getInputStream(), Paths.get(storePath));
@@ -97,7 +99,7 @@ public class NotesServiceImpl implements NotesService {
                 fileDetails.setOriginalFileName(originalFileName);
                 fileDetails.setDisplayFileName(getDisplayName(originalFileName));
                 fileDetails.setUploadFileName(uploadFileName);
-                fileDetails.setFileSize(fileDetails.getFileSize());
+                fileDetails.setFileSize(file.getSize());
                 fileDetails.setPath(storePath);
                 FileDetails saveFileDetails = fileRepository.save(fileDetails);
                 return saveFileDetails;
@@ -126,6 +128,23 @@ public class NotesServiceImpl implements NotesService {
 
         return notesRepository.findAll().stream()
                 .map(note -> mapper.map(note, NotesDto.class)).toList();
+    }
+
+    @Override
+    public byte[] downloadFile(FileDetails fileDetails) throws Exception {
+                
+        InputStream io=new FileInputStream(fileDetails.getPath());
+        return StreamUtils.copyToByteArray(io);
+        
+
+    }
+
+    @Override
+    public FileDetails getFileDetails(Integer id) throws Exception {
+        FileDetails fileDetails = fileRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("File is not available"));
+
+        return fileDetails;
     }
 
 }
