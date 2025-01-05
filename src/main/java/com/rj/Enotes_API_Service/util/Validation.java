@@ -7,12 +7,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import com.rj.Enotes_API_Service.dto.CategoryDto;
+import com.rj.Enotes_API_Service.dto.TodoDto;
+import com.rj.Enotes_API_Service.dto.TodoDto.StatusDto;
+import com.rj.Enotes_API_Service.enums.TodoStatus;
+import com.rj.Enotes_API_Service.exception.ResourceNotFoundException;
 import com.rj.Enotes_API_Service.exception.ValidationException;
 
 @Component
 public class Validation {
 
     public void categoryValidation(CategoryDto categoryDto) {
+
 
         Map<String, Object> error = new LinkedHashMap<>();
 
@@ -52,4 +57,18 @@ public class Validation {
 
     }
 
+    public void todoValidation(TodoDto todo) throws Exception{
+
+        StatusDto reqStatus= todo.getStatus();
+        Boolean statusFound =false;
+
+        for(TodoStatus st: TodoStatus.values()){
+            if (st.getId().equals(reqStatus.getId())) {
+                statusFound=true;
+            }
+        }
+        if (!statusFound) {
+            throw new ResourceNotFoundException("Invalid status");
+        }
+    }
 }
