@@ -1,23 +1,32 @@
 package com.rj.Enotes_API_Service.util;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import com.rj.Enotes_API_Service.dto.CategoryDto;
 import com.rj.Enotes_API_Service.dto.TodoDto;
+import com.rj.Enotes_API_Service.dto.UserDto;
 import com.rj.Enotes_API_Service.dto.TodoDto.StatusDto;
+import com.rj.Enotes_API_Service.entity.Role;
 import com.rj.Enotes_API_Service.enums.TodoStatus;
 import com.rj.Enotes_API_Service.exception.ResourceNotFoundException;
 import com.rj.Enotes_API_Service.exception.ValidationException;
+import com.rj.Enotes_API_Service.repository.RoleRepository;
 
 @Component
 public class Validation {
 
-    public void categoryValidation(CategoryDto categoryDto) {
+    @Autowired
+    private RoleRepository roleRepository;
 
+    public void categoryValidation(CategoryDto categoryDto) {
 
         Map<String, Object> error = new LinkedHashMap<>();
 
@@ -43,9 +52,9 @@ public class Validation {
             /////////// validation is active field//////////////////////
             if (ObjectUtils.isEmpty(categoryDto.getIsActive())) {
                 error.put("isActive", "isActive field is empty or null");
-            }
-            else{
-                if (categoryDto.getIsActive()!=Boolean.TRUE.booleanValue()&& categoryDto.getIsActive()!=Boolean.FALSE.booleanValue()) {
+            } else {
+                if (categoryDto.getIsActive() != Boolean.TRUE.booleanValue()
+                        && categoryDto.getIsActive() != Boolean.FALSE.booleanValue()) {
                     error.put("isActive", "invalid value isActive Field");
                 }
             }
@@ -57,18 +66,60 @@ public class Validation {
 
     }
 
-    public void todoValidation(TodoDto todo) throws Exception{
+    public void todoValidation(TodoDto todo) throws Exception {
 
-        StatusDto reqStatus= todo.getStatus();
-        Boolean statusFound =false;
+        StatusDto reqStatus = todo.getStatus();
+        Boolean statusFound = false;
 
-        for(TodoStatus st: TodoStatus.values()){
+        for (TodoStatus st : TodoStatus.values()) {
             if (st.getId().equals(reqStatus.getId())) {
-                statusFound=true;
+                statusFound = true;
             }
         }
         if (!statusFound) {
             throw new ResourceNotFoundException("Invalid status");
+        }
+    }
+
+    public void userValidation(UserDto userDto) {
+
+        if (!StringUtils.hasText(userDto.getFirstName())) {
+
+            throw new IllegalArgumentException("First name is invalid");
+        }
+
+
+        if (!StringUtils.hasText(userDto.getLastName())) {
+
+            throw new IllegalArgumentException("Last name is invalid");
+        }
+
+
+        if (!StringUtils.hasText(userDto.getEmail())) {
+
+            throw new IllegalArgumentException("Email is invalid");
+        }
+
+
+
+        if (!StringUtils.hasText(userDto.getMobNo())|| !userDto.getMobNo().matches(Constants.MOBNO_REGEX)) {
+
+            throw new IllegalArgumentException("Mobile number is invalid");
+        }
+
+
+        if (CollectionUtils.isEmpty(userDto.getRoles())) {
+            throw new IllegalArgumentException("Role is invalid");
+        }else{
+
+            List<Integer>roleIds=roleRepository.findAll().stream().map(r->r.getId()).toList();
+
+            List<Integer> invalidReqRoleIds = userDto.getRoles().stream().map(r->r.getId()).filter(roleId->!roleIds.contains(roleId)).toList();
+
+            if (!CollectionUtils.isEmpty(invalidReqRoleIds)) {
+                throw new IllegalArgumentException("Role  is invalid "+invalidReqRoleIds);
+
+            }
         }
     }
 }
