@@ -64,4 +64,12 @@ public class GlobalExceptionHandler {
 
     }
 
+    
+    @ExceptionHandler(ExistDataException.class)
+    public ResponseEntity<?>handleExistDataException(ExistDataException e){
+
+        return  CommonUtil.createErrorResponse(e.getMessage(), HttpStatus.CONFLICT);
+
+    }
+
 }

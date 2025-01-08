@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -16,15 +17,20 @@ import com.rj.Enotes_API_Service.dto.UserDto;
 import com.rj.Enotes_API_Service.dto.TodoDto.StatusDto;
 import com.rj.Enotes_API_Service.entity.Role;
 import com.rj.Enotes_API_Service.enums.TodoStatus;
+import com.rj.Enotes_API_Service.exception.ExistDataException;
 import com.rj.Enotes_API_Service.exception.ResourceNotFoundException;
 import com.rj.Enotes_API_Service.exception.ValidationException;
 import com.rj.Enotes_API_Service.repository.RoleRepository;
+import com.rj.Enotes_API_Service.repository.UserRepository;
 
 @Component
 public class Validation {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public void categoryValidation(CategoryDto categoryDto) {
 
@@ -81,7 +87,7 @@ public class Validation {
         }
     }
 
-    public void userValidation(UserDto userDto) {
+    public void userValidation(UserDto userDto) throws Exception{
 
         if (!StringUtils.hasText(userDto.getFirstName())) {
 
@@ -99,7 +105,12 @@ public class Validation {
 
             throw new IllegalArgumentException("Email is invalid");
         }
-
+        else{
+            Boolean existEmail=userRepository.existsByEmail(userDto.getEmail());
+            if (existEmail) {
+                throw new ExistDataException("Email id already exist");
+            }
+        }
 
 
         if (!StringUtils.hasText(userDto.getMobNo())|| !userDto.getMobNo().matches(Constants.MOBNO_REGEX)) {
@@ -121,5 +132,7 @@ public class Validation {
 
             }
         }
+
+        
     }
 }
