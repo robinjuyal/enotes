@@ -31,7 +31,7 @@ public class UserServiceImpl implements UserService {
     private ModelMapper mapper;
 
     @Override
-    public Boolean register(UserDto userDto) {
+    public Boolean register(UserDto userDto) throws Exception {
 
         validation.userValidation(userDto);
         User user = mapper.map(userDto, User.class);

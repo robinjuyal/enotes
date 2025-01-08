@@ -35,6 +35,7 @@ public class GenericResponse {
             map.put("data", data);
             
         }
+        
         return new ResponseEntity<>(map,responseStatus);
     }
 }
